@@ -13,15 +13,18 @@ export default function sitemap() {
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8
+    },
+    {
+      url: `${baseUrl}/sustainable-investing-strategies-2025`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/longevity-diet-habits-aging`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
     }
-    // When adding more articles, add a comma after the fish-curry object
-    // Example:
-    // },
-    // {
-    //   url: `${baseUrl}/your-new-article`,
-    //   lastModified: new Date(),
-    //   changeFrequency: 'monthly',
-    //   priority: 0.8
-    // }
   ]
 }
