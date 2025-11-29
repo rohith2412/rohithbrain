@@ -25,6 +25,18 @@ export default function sitemap() {
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8
+    },
+    {
+      url: `${baseUrl}/holiday-budget-planning-2025`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/mental-health-winter-wellness-tips`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
     }
   ]
 }
