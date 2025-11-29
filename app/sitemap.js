@@ -14,6 +14,14 @@ export default function sitemap() {
       changeFrequency: 'monthly',
       priority: 0.8
     }
-    // Add more articles here
+    // When adding more articles, add a comma after the fish-curry object
+    // Example:
+    // },
+    // {
+    //   url: `${baseUrl}/your-new-article`,
+    //   lastModified: new Date(),
+    //   changeFrequency: 'monthly',
+    //   priority: 0.8
+    // }
   ]
 }
