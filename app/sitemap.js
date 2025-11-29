@@ -1,7 +1,7 @@
 // FILE: app/sitemap.js
 
 export default function sitemap() {
-  const baseUrl = 'https://yourdomain.com'
+  const baseUrl = 'https://rohithbrain.com'
   
   return [
     {

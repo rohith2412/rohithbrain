@@ -5,7 +5,7 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  metadataBase: new URL('https://yourdomain.com'),
+  metadataBase: new URL('https://rohithbrain.com'),
   title: {
     default: 'Your App Name | Tagline',
     template: '%s | Your App Name'
@@ -17,7 +17,7 @@ export const metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://yourdomain.com',
+    url: 'https://rohithbrain.com',
     title: 'Your App Name',
     description: 'Your app description',
     siteName: 'Your App Name',

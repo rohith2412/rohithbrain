@@ -7,6 +7,6 @@ export default function robots() {
       allow: '/',
       disallow: ['/private/', '/admin/']
     },
-    sitemap: 'https://yourdomain.com/sitemap.xml'
+    sitemap: 'https://rohithbrain.com/sitemap.xml'
   }
 }
