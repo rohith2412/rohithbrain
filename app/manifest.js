@@ -1,10 +1,8 @@
-// FILE: app/manifest.js
-
 export default function manifest() {
   return {
-    name: 'Your App Name',
-    short_name: 'App',
-    description: 'Your app description',
+    name: 'Rohith Brain',
+    short_name: 'Rohith Brain',
+    description: 'Your source for knowledge and tips',
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',
