@@ -107,8 +107,10 @@ export default function AdminPanel() {
 
       console.log('Posting to GitHub:', `${repoOwner}/${repoName}`);
 
-      // 2. Get the latest commit SHA
-      const refResponse = await fetch(
+      const branchName = 'content-updates'; // Use a separate branch
+
+      // 2. Get the main branch reference
+      const mainRefResponse = await fetch(
         `https://api.github.com/repos/${repoOwner}/${repoName}/git/ref/heads/main`,
         {
           headers: {
@@ -118,14 +120,50 @@ export default function AdminPanel() {
         }
       );
       
-      if (!refResponse.ok) {
-        throw new Error(`GitHub API Error: ${refResponse.status} ${refResponse.statusText}`);
+      if (!mainRefResponse.ok) {
+        throw new Error(`GitHub API Error: ${mainRefResponse.status} ${mainRefResponse.statusText}`);
       }
       
-      const refData = await refResponse.json();
-      const latestCommitSha = refData.object.sha;
+      const mainRefData = await mainRefResponse.json();
+      const latestCommitSha = mainRefData.object.sha;
 
-      // 3. Get the tree
+      // 3. Create or update the content-updates branch
+      try {
+        await fetch(
+          `https://api.github.com/repos/${repoOwner}/${repoName}/git/refs`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `token ${githubToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              ref: `refs/heads/${branchName}`,
+              sha: latestCommitSha
+            })
+          }
+        );
+        console.log('Created new branch:', branchName);
+      } catch (error) {
+        // Branch might already exist, update it instead
+        await fetch(
+          `https://api.github.com/repos/${repoOwner}/${repoName}/git/refs/heads/${branchName}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `token ${githubToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              sha: latestCommitSha,
+              force: true
+            })
+          }
+        );
+        console.log('Updated existing branch:', branchName);
+      }
+
+      // 4. Get the tree
       const commitResponse = await fetch(
         `https://api.github.com/repos/${repoOwner}/${repoName}/git/commits/${latestCommitSha}`,
         {
@@ -138,7 +176,7 @@ export default function AdminPanel() {
       const commitData = await commitResponse.json();
       const baseTreeSha = commitData.tree.sha;
 
-      // 4. Create blobs for each file
+      // 5. Create blobs for each file
       console.log('Creating blobs...');
       const blobs = await Promise.all(
         articlesToPost.map(async (article) => {
@@ -166,7 +204,7 @@ export default function AdminPanel() {
         })
       );
 
-      // 5. Create new tree
+      // 6. Create new tree
       console.log('Creating tree...');
       const treeResponse = await fetch(
         `https://api.github.com/repos/${repoOwner}/${repoName}/git/trees`,
@@ -184,7 +222,7 @@ export default function AdminPanel() {
       );
       const treeData = await treeResponse.json();
 
-      // 6. Create commit
+      // 7. Create commit
       console.log('Creating commit...');
       const newCommitResponse = await fetch(
         `https://api.github.com/repos/${repoOwner}/${repoName}/git/commits`,
@@ -203,10 +241,10 @@ export default function AdminPanel() {
       );
       const newCommitData = await newCommitResponse.json();
 
-      // 7. Update reference
-      console.log('Updating main branch...');
+      // 8. Update the content-updates branch
+      console.log('Updating branch...');
       await fetch(
-        `https://api.github.com/repos/${repoOwner}/${repoName}/git/refs/heads/main`,
+        `https://api.github.com/repos/${repoOwner}/${repoName}/git/refs/heads/${branchName}`,
         {
           method: 'PATCH',
           headers: {
@@ -220,7 +258,7 @@ export default function AdminPanel() {
       );
 
       console.log('✓ Success!');
-      alert('✅ Successfully posted all articles to GitHub! Vercel will auto-deploy.');
+      alert(`✅ Successfully posted all articles to branch '${branchName}'!\n\nNext steps:\n1. Go to GitHub and create a Pull Request\n2. Review the changes\n3. Merge when ready`);
       setIsPosting(false);
     } catch (error) {
       console.error('GitHub error:', error);
