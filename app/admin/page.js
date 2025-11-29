@@ -1,82 +1,154 @@
+// FILE: app/admin/page.js
 'use client';
 import { useState, useEffect } from 'react';
 
 export default function AdminPanel() {
   const [articles, setArticles] = useState([]);
+  const [topics, setTopics] = useState([]);
   const [isPosting, setIsPosting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingTopics, setIsGeneratingTopics] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [articleCount, setArticleCount] = useState(5);
 
-  // Only render after component mounts on client
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Get credentials from environment variables (only for GitHub - Anthropic is server-side now)
   const githubToken = typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_GITHUB_TOKEN : null;
   const repoOwner = typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_GITHUB_USERNAME : null;
   const repoName = typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_REPOSITORY_NAME : null;
 
-  const topics = [
-    { slug: 'save-money-fast', title: 'How to Save Money Fast', category: 'Finance', keywords: 'money, finance, savings' },
-    // { slug: 'weight-loss-tips', title: '10 Weight Loss Tips', category: 'Health', keywords: 'weight loss, diet, health' },
-    // { slug: 'productivity-hacks', title: 'Top Productivity Hacks', category: 'Lifestyle', keywords: 'productivity, efficiency, work' },
-    // { slug: 'digital-marketing-guide', title: 'Digital Marketing Guide', category: 'Business', keywords: 'marketing, digital, strategy' },
-    // { slug: 'mental-health-tips', title: 'Mental Health Tips', category: 'Health', keywords: 'mental health, wellness, mindfulness' },
-    // { slug: 'remote-work-setup', title: 'Perfect Remote Work Setup', category: 'Career', keywords: 'remote work, home office, productivity' },
-    // { slug: 'investment-basics', title: 'Investment Basics for Beginners', category: 'Finance', keywords: 'investment, stocks, finance' },
-    // { slug: 'healthy-meal-prep', title: 'Healthy Meal Prep Ideas', category: 'Health', keywords: 'meal prep, nutrition, healthy eating' },
-    // { slug: 'time-management', title: 'Master Time Management', category: 'Productivity', keywords: 'time management, planning, efficiency' },
-    // { slug: 'social-media-growth', title: 'Social Media Growth Strategies', category: 'Marketing', keywords: 'social media, growth, engagement' },
-    // { slug: 'stress-relief', title: 'Effective Stress Relief Methods', category: 'Wellness', keywords: 'stress relief, relaxation, mental health' },
-    // { slug: 'side-hustle-ideas', title: 'Best Side Hustle Ideas', category: 'Finance', keywords: 'side hustle, income, business' },
-    // { slug: 'morning-routine', title: 'Perfect Morning Routine', category: 'Lifestyle', keywords: 'morning routine, habits, wellness' },
-    // { slug: 'seo-basics', title: 'SEO Basics for Websites', category: 'Marketing', keywords: 'SEO, search engine, optimization' },
-    // { slug: 'budget-travel', title: 'Budget Travel Tips', category: 'Travel', keywords: 'travel, budget, adventure' },
-    // { slug: 'email-marketing', title: 'Email Marketing Best Practices', category: 'Marketing', keywords: 'email marketing, campaigns, conversion' },
-    // { slug: 'home-workout', title: 'Effective Home Workouts', category: 'Fitness', keywords: 'workout, fitness, exercise' },
-    // { slug: 'passive-income', title: 'Build Passive Income Streams', category: 'Finance', keywords: 'passive income, investment, money' },
-    // { slug: 'content-creation', title: 'Content Creation Guide', category: 'Business', keywords: 'content creation, strategy, marketing' },
-    // { slug: 'sleep-optimization', title: 'Optimize Your Sleep', category: 'Health', keywords: 'sleep, health, wellness' },
-  ];
+  // Generate trending topics using Claude
+  const generateTrendingTopics = async () => {
+    setIsGeneratingTopics(true);
+    try {
+      console.log('🔥 Requesting', articleCount, 'topics...');
+      
+      const response = await fetch('/api/generate-topics', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ count: articleCount })
+      });
 
-  // Generate articles using our API route
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+
+      if (!response.ok) {
+        const contentType = response.headers.get('content-type');
+        let errorMessage;
+        
+        if (contentType && contentType.includes('application/json')) {
+          const error = await response.json();
+          console.error('❌ API Error (JSON):', error);
+          errorMessage = error.error || JSON.stringify(error);
+        } else {
+          const errorText = await response.text();
+          console.error('❌ API Error (Text):', errorText);
+          errorMessage = errorText || 'Unknown error';
+        }
+        
+        throw new Error(`API Error (${response.status}): ${errorMessage}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Received topics:', data.topics?.length || 0);
+      
+      if (!data.topics || !Array.isArray(data.topics) || data.topics.length === 0) {
+        console.error('❌ Invalid response:', data);
+        throw new Error('No topics received from API');
+      }
+      
+      console.log('📋 Topics:', data.topics.map(t => t.title).join(', '));
+      
+      setTopics(data.topics);
+      setIsGeneratingTopics(false);
+      alert(`✅ Generated ${data.topics.length} trending topics!`);
+    } catch (error) {
+      console.error('💥 Topic generation error:', error);
+      console.error('💥 Error details:', {
+        message: error.message,
+        stack: error.stack
+      });
+      setIsGeneratingTopics(false);
+      alert('❌ Error generating topics:\n\n' + error.message + '\n\nCheck browser console (F12) for full details.');
+    }
+  };
+
+  // Generate articles using the topics
   const generateArticles = async () => {
+    if (topics.length === 0) {
+      alert('⚠️ Please generate topics first!');
+      return;
+    }
+
     setIsGenerating(true);
     const generated = [];
+    const failed = [];
     
     try {
       for (let i = 0; i < topics.length; i++) {
         const topic = topics[i];
         console.log(`Generating ${i + 1}/${topics.length}: ${topic.title}`);
 
-        // Call our API route instead of Anthropic directly
-        const response = await fetch('/api/generate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ topic })
-        });
+        try {
+          const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ topic })
+          });
 
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || `API Error: ${response.status}`);
+          if (!response.ok) {
+            const error = await response.json();
+            console.error(`Failed to generate ${topic.title}:`, error);
+            failed.push({ topic: topic.title, error: error.error });
+            continue;
+          }
+
+          const data = await response.json();
+          
+          if (!data.code || data.code.trim().length === 0) {
+            console.error(`Empty code generated for ${topic.title}`);
+            failed.push({ topic: topic.title, error: 'Empty code generated' });
+            continue;
+          }
+          
+          if (!data.code.includes('export const metadata') || !data.code.includes('export default function')) {
+            console.warn(`⚠️ Generated code for ${topic.title} might be incomplete`);
+          }
+          
+          if (data.warnings && data.warnings.length > 0) {
+            console.warn(`⚠️ Warnings for ${topic.title}:`, data.warnings);
+          }
+          
+          generated.push({
+            path: `app/${topic.slug}/page.js`,
+            content: data.code,
+            slug: topic.slug,
+            warnings: data.warnings
+          });
+
+          console.log(`✓ Generated: ${topic.title} (${generated.length}/${topics.length})`);
+          
+        } catch (articleError) {
+          console.error(`Error generating ${topic.title}:`, articleError);
+          failed.push({ topic: topic.title, error: articleError.message });
         }
-
-        const data = await response.json();
-        
-        generated.push({
-          path: `app/${topic.slug}/page.js`,
-          content: data.code
-        });
-
-        console.log(`✓ Generated: ${topic.title} (${generated.length}/${topics.length})`);
       }
       
       setArticles(generated);
       setIsGenerating(false);
-      alert(`✅ Successfully generated ${generated.length} articles!`);
+      
+      let message = `✅ Successfully generated ${generated.length} articles!`;
+      if (failed.length > 0) {
+        message += `\n\n⚠️ ${failed.length} failed:\n${failed.map(f => `- ${f.topic}: ${f.error}`).join('\n')}`;
+      }
+      alert(message);
+      
     } catch (error) {
       console.error('Generation error:', error);
       setIsGenerating(false);
@@ -86,7 +158,7 @@ export default function AdminPanel() {
     return generated;
   };
 
-  // Auto-post to GitHub
+  // Post to GitHub with sitemap update
   const postToGitHub = async () => {
     if (!githubToken || !repoOwner || !repoName) {
       alert('❌ Missing GitHub credentials. Check your .env.local file and restart the server.');
@@ -96,7 +168,6 @@ export default function AdminPanel() {
     setIsPosting(true);
 
     try {
-      // 1. Generate all articles first if not already generated
       const articlesToPost = articles.length > 0 ? articles : await generateArticles();
 
       if (articlesToPost.length === 0) {
@@ -105,11 +176,13 @@ export default function AdminPanel() {
         return;
       }
 
-      console.log('Posting to GitHub:', `${repoOwner}/${repoName}`);
+      console.log('📤 Posting to GitHub:', `${repoOwner}/${repoName}`);
+      console.log('📝 Articles to post:', articlesToPost.length);
 
-      const branchName = 'content-updates'; // Use a separate branch
+      const branchName = 'content-updates';
 
-      // 2. Get the main branch reference
+      // 1. Get the main branch reference
+      console.log('1️⃣ Getting main branch reference...');
       const mainRefResponse = await fetch(
         `https://api.github.com/repos/${repoOwner}/${repoName}/git/ref/heads/main`,
         {
@@ -121,15 +194,19 @@ export default function AdminPanel() {
       );
       
       if (!mainRefResponse.ok) {
-        throw new Error(`GitHub API Error: ${mainRefResponse.status} ${mainRefResponse.statusText}`);
+        const errorText = await mainRefResponse.text();
+        console.error('GitHub API Error:', errorText);
+        throw new Error(`GitHub API Error: ${mainRefResponse.status} - ${errorText}`);
       }
       
       const mainRefData = await mainRefResponse.json();
       const latestCommitSha = mainRefData.object.sha;
+      console.log('✓ Latest commit SHA:', latestCommitSha.substring(0, 7));
 
-      // 3. Create or update the content-updates branch
+      // 2. Create or update the content-updates branch
+      console.log('2️⃣ Creating/updating branch:', branchName);
       try {
-        await fetch(
+        const createBranchResponse = await fetch(
           `https://api.github.com/repos/${repoOwner}/${repoName}/git/refs`,
           {
             method: 'POST',
@@ -143,27 +220,38 @@ export default function AdminPanel() {
             })
           }
         );
-        console.log('Created new branch:', branchName);
-      } catch (error) {
-        // Branch might already exist, update it instead
-        await fetch(
-          `https://api.github.com/repos/${repoOwner}/${repoName}/git/refs/heads/${branchName}`,
-          {
-            method: 'PATCH',
-            headers: {
-              'Authorization': `token ${githubToken}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              sha: latestCommitSha,
-              force: true
-            })
+        
+        if (createBranchResponse.ok) {
+          console.log('✓ Created new branch:', branchName);
+        } else {
+          const updateBranchResponse = await fetch(
+            `https://api.github.com/repos/${repoOwner}/${repoName}/git/refs/heads/${branchName}`,
+            {
+              method: 'PATCH',
+              headers: {
+                'Authorization': `token ${githubToken}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                sha: latestCommitSha,
+                force: true
+              })
+            }
+          );
+          
+          if (!updateBranchResponse.ok) {
+            const errorText = await updateBranchResponse.text();
+            throw new Error(`Failed to update branch: ${errorText}`);
           }
-        );
-        console.log('Updated existing branch:', branchName);
+          console.log('✓ Updated existing branch:', branchName);
+        }
+      } catch (branchError) {
+        console.error('Branch creation/update error:', branchError);
+        throw branchError;
       }
 
-      // 4. Get the tree
+      // 3. Get the tree
+      console.log('3️⃣ Getting commit tree...');
       const commitResponse = await fetch(
         `https://api.github.com/repos/${repoOwner}/${repoName}/git/commits/${latestCommitSha}`,
         {
@@ -173,13 +261,41 @@ export default function AdminPanel() {
           }
         }
       );
+      
+      if (!commitResponse.ok) {
+        throw new Error(`Failed to get commit: ${commitResponse.status}`);
+      }
+      
       const commitData = await commitResponse.json();
       const baseTreeSha = commitData.tree.sha;
+      console.log('✓ Base tree SHA:', baseTreeSha.substring(0, 7));
 
-      // 5. Create blobs for each file
-      console.log('Creating blobs...');
-      const blobs = await Promise.all(
-        articlesToPost.map(async (article) => {
+      // 4. Generate updated sitemap.js
+      console.log('4️⃣ Generating sitemap...');
+      const sitemapContent = generateSitemapContent(articlesToPost);
+      console.log('✓ Sitemap generated');
+
+      // 5. Create blobs for articles and sitemap
+      console.log('5️⃣ Creating blobs for', articlesToPost.length, 'articles + sitemap...');
+      const articleBlobs = [];
+      
+      for (let i = 0; i < articlesToPost.length; i++) {
+        const article = articlesToPost[i];
+        try {
+          console.log(`  Creating blob ${i + 1}/${articlesToPost.length}: ${article.path}`);
+          
+          if (!article.content || article.content.trim().length === 0) {
+            console.error(`  ❌ Empty content for ${article.path}`);
+            throw new Error(`Empty content for ${article.path}`);
+          }
+          
+          const contentSize = new Blob([article.content]).size;
+          console.log(`  Content size: ${(contentSize / 1024).toFixed(2)} KB`);
+          
+          if (contentSize > 10 * 1024 * 1024) {
+            console.warn(`  ⚠️  Large file: ${article.path} (${(contentSize / 1024 / 1024).toFixed(2)} MB)`);
+          }
+          
           const blobResponse = await fetch(
             `https://api.github.com/repos/${repoOwner}/${repoName}/git/blobs`,
             {
@@ -194,18 +310,68 @@ export default function AdminPanel() {
               })
             }
           );
+          
+          if (!blobResponse.ok) {
+            const errorText = await blobResponse.text();
+            console.error(`  ❌ Blob creation failed:`, errorText);
+            throw new Error(`Failed to create blob for ${article.path}: ${errorText}`);
+          }
+          
           const blobData = await blobResponse.json();
-          return {
+          console.log(`  ✓ Blob created:`, blobData.sha.substring(0, 7));
+          
+          articleBlobs.push({
             path: article.path,
             mode: '100644',
             type: 'blob',
             sha: blobData.sha
-          };
-        })
-      );
+          });
+        } catch (error) {
+          console.error(`  ❌ Error processing ${article.path}:`, error);
+          throw new Error(`Failed to create blob for ${article.path}: ${error.message}`);
+        }
+      }
+      
+      console.log('✓ All article blobs created successfully');
 
-      // 6. Create new tree
-      console.log('Creating tree...');
+      // 6. Create sitemap blob
+      console.log('6️⃣ Creating sitemap blob...');
+      const sitemapBlobResponse = await fetch(
+        `https://api.github.com/repos/${repoOwner}/${repoName}/git/blobs`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `token ${githubToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            content: sitemapContent,
+            encoding: 'utf-8'
+          })
+        }
+      );
+      
+      if (!sitemapBlobResponse.ok) {
+        throw new Error('Failed to create sitemap blob');
+      }
+      
+      const sitemapBlobData = await sitemapBlobResponse.json();
+      console.log('✓ Sitemap blob created');
+      
+      const allBlobs = [
+        ...articleBlobs,
+        {
+          path: 'app/sitemap.js',
+          mode: '100644',
+          type: 'blob',
+          sha: sitemapBlobData.sha
+        }
+      ];
+      
+      console.log('✓ Total blobs:', allBlobs.length);
+
+      // 7. Create new tree
+      console.log('7️⃣ Creating tree...');
       const treeResponse = await fetch(
         `https://api.github.com/repos/${repoOwner}/${repoName}/git/trees`,
         {
@@ -216,14 +382,21 @@ export default function AdminPanel() {
           },
           body: JSON.stringify({
             base_tree: baseTreeSha,
-            tree: blobs
+            tree: allBlobs
           })
         }
       );
+      
+      if (!treeResponse.ok) {
+        const errorText = await treeResponse.text();
+        throw new Error(`Failed to create tree: ${errorText}`);
+      }
+      
       const treeData = await treeResponse.json();
+      console.log('✓ Tree created:', treeData.sha.substring(0, 7));
 
-      // 7. Create commit
-      console.log('Creating commit...');
+      // 8. Create commit
+      console.log('8️⃣ Creating commit...');
       const newCommitResponse = await fetch(
         `https://api.github.com/repos/${repoOwner}/${repoName}/git/commits`,
         {
@@ -233,17 +406,24 @@ export default function AdminPanel() {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            message: `Add ${articlesToPost.length} new articles`,
+            message: `Add ${articlesToPost.length} new articles and update sitemap`,
             tree: treeData.sha,
             parents: [latestCommitSha]
           })
         }
       );
+      
+      if (!newCommitResponse.ok) {
+        const errorText = await newCommitResponse.text();
+        throw new Error(`Failed to create commit: ${errorText}`);
+      }
+      
       const newCommitData = await newCommitResponse.json();
+      console.log('✓ Commit created:', newCommitData.sha.substring(0, 7));
 
-      // 8. Update the content-updates branch
-      console.log('Updating branch...');
-      await fetch(
+      // 9. Update the content-updates branch
+      console.log('9️⃣ Updating branch reference...');
+      const updateRefResponse = await fetch(
         `https://api.github.com/repos/${repoOwner}/${repoName}/git/refs/heads/${branchName}`,
         {
           method: 'PATCH',
@@ -256,9 +436,24 @@ export default function AdminPanel() {
           })
         }
       );
+      
+      if (!updateRefResponse.ok) {
+        const errorText = await updateRefResponse.text();
+        throw new Error(`Failed to update branch: ${errorText}`);
+      }
+      
+      console.log('✓ Branch updated successfully!');
 
-      console.log('✓ Success!');
-      alert(`✅ Successfully posted all articles to branch '${branchName}'!\n\nNext steps:\n1. Go to GitHub and create a Pull Request\n2. Review the changes\n3. Merge when ready`);
+      console.log('✓ Success! Branch updated:', branchName);
+      
+      const prUrl = `https://github.com/${repoOwner}/${repoName}/compare/${branchName}?expand=1`;
+      
+      alert(`✅ Successfully posted ${articlesToPost.length} articles + updated sitemap!\n\n🔗 Branch: ${branchName}\n\n📋 Next steps:\n1. Click OK to open GitHub\n2. Create Pull Request\n3. Review changes\n4. Merge when ready\n\nOpening GitHub in 2 seconds...`);
+      
+      setTimeout(() => {
+        window.open(prUrl, '_blank');
+      }, 2000);
+      
       setIsPosting(false);
     } catch (error) {
       console.error('GitHub error:', error);
@@ -267,7 +462,40 @@ export default function AdminPanel() {
     }
   };
 
-  // Show loading state during hydration
+  // Generate sitemap content
+  const generateSitemapContent = (articlesToPost) => {
+    const baseUrl = 'https://rohithbrain.com';
+    
+    const articleEntries = articlesToPost.map(article => {
+      return `    {
+      url: \`\${baseUrl}/${article.slug}\`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    }`;
+    }).join(',\n');
+
+    return `export default function sitemap() {
+  const baseUrl = '${baseUrl}'
+  
+  return [
+    {
+      url: baseUrl,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 1
+    },
+    {
+      url: \`\${baseUrl}/fish-curry\`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    },
+${articleEntries}
+  ]
+}`;
+  };
+
   if (!isMounted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8 flex items-center justify-center">
@@ -282,13 +510,32 @@ export default function AdminPanel() {
         <h1 className="text-5xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
           🚀 Rohith Brain Admin
         </h1>
-        <p className="text-gray-400 mb-8">Automated Content Generation & Deployment</p>
+        <p className="text-gray-400 mb-8">AI-Powered Content Generation & Deployment</p>
+
+        {/* Article Count Input */}
+        <div className="bg-gradient-to-r from-purple-900 to-blue-900 border border-purple-700 rounded-lg p-6 mb-6">
+          <h2 className="text-xl font-bold mb-4 text-white">📊 Content Settings</h2>
+          <div className="flex items-center gap-4">
+            <label className="text-white font-medium">Number of Articles:</label>
+            <input
+              type="number"
+              min="1"
+              max="100"
+              value={articleCount}
+              onChange={(e) => setArticleCount(parseInt(e.target.value) || 1)}
+              className="bg-gray-800 text-white border border-gray-600 rounded-lg px-4 py-2 w-24 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+            <span className="text-gray-400 text-sm">Generate 1-100 articles at once</span>
+          </div>
+        </div>
 
         {/* Debug Info */}
-        <div className="bg-blue-900 border border-blue-700 rounded-lg p-4 mb-6">
-          <h3 className="text-blue-300 font-bold mb-2">ℹ️ API Configuration</h3>
-          <p className="text-blue-200 text-sm">Anthropic API is called server-side (no CORS issues)</p>
-          <p className="text-blue-200 text-sm">GitHub API is called client-side</p>
+        <div className="bg-yellow-900 border border-yellow-700 rounded-lg p-4 mb-6">
+          <h3 className="text-yellow-300 font-bold mb-2">🐛 Debug Info</h3>
+          <p className="text-yellow-200 text-sm">Article Count: {articleCount}</p>
+          <p className="text-yellow-200 text-sm">Topics Generated: {topics.length}</p>
+          <p className="text-yellow-200 text-sm">Articles Generated: {articles.length}</p>
+          <p className="text-yellow-200 text-sm">Check browser console (F12) for detailed logs</p>
         </div>
 
         {/* Environment Status */}
@@ -312,30 +559,40 @@ export default function AdminPanel() {
         </div>
 
         {/* Topics Preview */}
-        <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-bold mb-4 text-white">📝 Articles Queue</h2>
-          <p className="text-gray-400 mb-4">Ready to generate {topics.length} articles</p>
-          <div className="max-h-60 overflow-y-auto space-y-2">
-            {topics.map((t, i) => (
-              <div key={i} className="flex items-center justify-between bg-gray-700 p-3 rounded-lg">
-                <div>
-                  <span className="text-white font-medium">{i + 1}. {t.title}</span>
-                  <span className="text-gray-400 text-sm ml-2">({t.category})</span>
+        {topics.length > 0 && (
+          <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-6 mb-6">
+            <h2 className="text-xl font-bold mb-4 text-white">📝 Generated Topics</h2>
+            <p className="text-gray-400 mb-4">{topics.length} trending topics ready</p>
+            <div className="max-h-60 overflow-y-auto space-y-2">
+              {topics.map((t, i) => (
+                <div key={i} className="flex items-center justify-between bg-gray-700 p-3 rounded-lg">
+                  <div>
+                    <span className="text-white font-medium">{i + 1}. {t.title}</span>
+                    <span className="text-gray-400 text-sm ml-2">({t.category})</span>
+                  </div>
+                  <span className="text-xs text-gray-500">{t.slug}</span>
                 </div>
-                <span className="text-xs text-gray-500">{t.slug}</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Action Buttons */}
         <div className="space-y-4">
           <button
+            onClick={generateTrendingTopics}
+            disabled={isGeneratingTopics}
+            className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-bold hover:from-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transition-all shadow-lg"
+          >
+            {isGeneratingTopics ? '⏳ Generating Trending Topics...' : `🔥 Step 1: Generate ${articleCount} Trending Topics`}
+          </button>
+
+          <button
             onClick={generateArticles}
-            disabled={isGenerating}
+            disabled={isGenerating || topics.length === 0}
             className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-bold hover:from-blue-700 hover:to-blue-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transition-all shadow-lg"
           >
-            {isGenerating ? '⏳ Generating Articles...' : '📝 Step 1: Generate 20 Articles'}
+            {isGenerating ? '⏳ Generating Articles...' : '📝 Step 2: Generate Articles'}
           </button>
 
           <button
@@ -343,36 +600,60 @@ export default function AdminPanel() {
             disabled={isPosting || !githubToken || !repoOwner || !repoName}
             className="w-full py-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-bold hover:from-green-700 hover:to-green-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transition-all shadow-lg"
           >
-            {isPosting ? '⏳ Posting to GitHub...' : '🚀 Step 2: Auto-Post to GitHub'}
+            {isPosting ? '⏳ Posting to GitHub...' : '🚀 Step 3: Post to GitHub + Update Sitemap'}
           </button>
         </div>
 
         {articles.length > 0 && (
           <div className="mt-6 bg-green-900 border border-green-700 rounded-lg p-4">
-            <p className="text-green-300 font-semibold">
+            <p className="text-green-300 font-semibold mb-2">
               ✅ {articles.length} articles generated and ready to post!
             </p>
+            <details className="mt-3">
+              <summary className="text-green-200 cursor-pointer hover:text-green-100">
+                📋 Preview Generated Articles
+              </summary>
+              <div className="mt-3 space-y-2 max-h-60 overflow-y-auto">
+                {articles.map((article, i) => (
+                  <div key={i} className="bg-green-950 p-3 rounded text-sm">
+                    <div className="text-green-200 font-mono">{article.path}</div>
+                    <div className="text-green-400 text-xs mt-1">
+                      Size: {article.content ? (new Blob([article.content]).size / 1024).toFixed(2) : 0} KB
+                      {!article.content && <span className="text-red-400 ml-2">⚠️ Empty content!</span>}
+                      {article.warnings && article.warnings.length > 0 && (
+                        <span className="text-yellow-400 ml-2">⚠️ {article.warnings.length} warning(s)</span>
+                      )}
+                    </div>
+                    {article.warnings && article.warnings.length > 0 && (
+                      <div className="mt-2 text-yellow-300 text-xs">
+                        Warnings: {article.warnings.join(', ')}
+                      </div>
+                    )}
+                    {article.content && (
+                      <details className="mt-2">
+                        <summary className="text-green-300 text-xs cursor-pointer">View Code</summary>
+                        <pre className="mt-2 p-2 bg-black rounded text-xs overflow-x-auto max-h-40">
+                          <code className="text-green-400">{article.content.substring(0, 500)}...</code>
+                        </pre>
+                      </details>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </details>
           </div>
         )}
 
         {/* Instructions */}
         <div className="mt-8 bg-gray-800 border border-gray-700 rounded-lg p-6">
-          <h3 className="text-lg font-bold text-white mb-3">📋 Setup Checklist</h3>
+          <h3 className="text-lg font-bold text-white mb-3">📋 How It Works</h3>
           <ol className="text-gray-300 space-y-2 text-sm list-decimal list-inside">
-            <li>Create <code className="bg-gray-700 px-2 py-1 rounded">.env.local</code> in project root (not inside app/)</li>
-            <li>Add variables with <code className="bg-gray-700 px-2 py-1 rounded">NEXT_PUBLIC_</code> prefix</li>
-            <li><strong className="text-yellow-300">RESTART your dev server completely (Ctrl+C then npm run dev)</strong></li>
-            <li>Hard refresh the browser (Ctrl+Shift+R or Cmd+Shift+R)</li>
-            <li>Check browser console (F12) for debug info</li>
+            <li>Enter the number of articles you want (1-100)</li>
+            <li>Click "Generate Trending Topics" - AI finds hot topics automatically</li>
+            <li>Click "Generate Articles" - Creates complete SEO-optimized pages</li>
+            <li>Click "Post to GitHub" - Uploads articles AND updates sitemap.js</li>
+            <li>Create a Pull Request on GitHub and merge when ready</li>
           </ol>
-          
-          <div className="mt-4 bg-gray-900 p-3 rounded text-xs text-gray-400 font-mono">
-            # .env.local (in project root)<br/>
-            ANTHROPIC_API_KEY=sk-ant-...<br/>
-            NEXT_PUBLIC_GITHUB_TOKEN=ghp_...<br/>
-            NEXT_PUBLIC_GITHUB_USERNAME=rohith2412<br/>
-            NEXT_PUBLIC_REPOSITORY_NAME=rohithbrain
-          </div>
         </div>
       </div>
     </div>
