@@ -15,13 +15,13 @@ export default function sitemap() {
       priority: 0.8
     },
     {
-      url: `${baseUrl}/sustainable-investing-strategies-2025`,
+      url: `${baseUrl}/holiday-budget-inflation-survival-guide-2025`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8
     },
     {
-      url: `${baseUrl}/longevity-diet-habits-aging`,
+      url: `${baseUrl}/remote-work-burnout-prevention-strategies`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8
