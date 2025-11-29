@@ -272,8 +272,47 @@ export default function AdminPanel() {
 
       // 4. Generate updated sitemap.js
       console.log('4️⃣ Generating sitemap...');
-      const sitemapContent = generateSitemapContent(articlesToPost);
-      console.log('✓ Sitemap generated');
+      const existingSlugs = await generateSitemapContent(articlesToPost);
+      
+      // Combine existing slugs with new ones (avoid duplicates)
+      const newSlugs = articlesToPost.map(a => a.slug);
+      const allSlugs = [...new Set([...existingSlugs, ...newSlugs])]; // Remove duplicates
+      
+      console.log('📋 Existing articles:', existingSlugs.length);
+      console.log('📋 New articles:', newSlugs.length);
+      console.log('📋 Total unique articles:', allSlugs.length);
+      
+      // Create sitemap entries for all articles
+      const allArticleEntries = allSlugs.map(slug => {
+        return `    {
+      url: \`\${baseUrl}/${slug}\`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    }`;
+      }).join(',\n');
+      
+      const sitemapContent = `export default function sitemap() {
+  const baseUrl = 'https://rohithbrain.com'
+  
+  return [
+    {
+      url: baseUrl,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 1
+    },
+    {
+      url: \`\${baseUrl}/fish-curry\`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    },
+${allArticleEntries}
+  ]
+}`;
+      
+      console.log('✓ Sitemap generated with', allSlugs.length, 'articles');
 
       // 5. Create blobs for articles and sitemap
       console.log('5️⃣ Creating blobs for', articlesToPost.length, 'articles + sitemap...');
@@ -466,34 +505,38 @@ export default function AdminPanel() {
   const generateSitemapContent = (articlesToPost) => {
     const baseUrl = 'https://rohithbrain.com';
     
-    const articleEntries = articlesToPost.map(article => {
-      return `    {
-      url: \`\${baseUrl}/${article.slug}\`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8
-    }`;
-    }).join(',\n');
-
-    return `export default function sitemap() {
-  const baseUrl = '${baseUrl}'
-  
-  return [
-    {
-      url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 1
-    },
-    {
-      url: \`\${baseUrl}/fish-curry\`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8
-    },
-${articleEntries}
-  ]
-}`;
+    // Get existing articles from the current sitemap
+    const fetchExistingSitemap = async () => {
+      try {
+        const response = await fetch(
+          `https://api.github.com/repos/${repoOwner}/${repoName}/contents/app/sitemap.js`,
+          {
+            headers: {
+              'Authorization': `token ${githubToken}`,
+              'Accept': 'application/vnd.github.v3+json'
+            }
+          }
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          const content = atob(data.content); // Decode base64
+          
+          // Extract existing slugs from sitemap
+          const slugMatches = content.match(/url: `\${baseUrl}\/([^`]+)`/g);
+          if (slugMatches) {
+            return slugMatches
+              .map(match => match.match(/\/([^`]+)`/)[1])
+              .filter(slug => slug !== '' && slug !== 'fish-curry'); // Exclude home and fish-curry (we'll add them manually)
+          }
+        }
+      } catch (error) {
+        console.warn('Could not fetch existing sitemap, creating new one:', error);
+      }
+      return [];
+    };
+    
+    return fetchExistingSitemap();
   };
 
   if (!isMounted) {
