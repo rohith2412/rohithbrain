@@ -112,7 +112,7 @@ export default function FishCurryRecipe() {
         {/* Ingredients */}
         <section className="mb-8">
           <h2 className="text-2xl font-bold mb-4">Ingredients (for 2–3 servings)</h2>
-          <ul className="space-y-2">
+          <ul className="space-y-2 text-xl">
             <li>• 300–400g fish (any firm white fish like cod, tilapia, or kingfish)</li>
             <li>• 1 medium onion, finely chopped</li>
             <li>• 2 medium tomatoes, chopped or pureed</li>
@@ -138,7 +138,7 @@ export default function FishCurryRecipe() {
           <div className="space-y-6">
             <div>
               <h3 className="text-xl font-semibold mb-2">1. Prep the fish</h3>
-              <ul className="ml-6 space-y-1">
+              <ul className="ml-6 space-y-1 text-xl">
                 <li>• Wash the fish and pat dry.</li>
                 <li>• Marinate with a pinch of turmeric and salt for 10–15 minutes.</li>
               </ul>
@@ -146,7 +146,7 @@ export default function FishCurryRecipe() {
 
             <div>
               <h3 className="text-xl font-semibold mb-2">2. Cook the base</h3>
-              <ul className="ml-6 space-y-1">
+              <ul className="ml-6 space-y-1 text-xl">
                 <li>• Heat oil in a pan.</li>
                 <li>• Add chopped onions and sauté until golden brown.</li>
                 <li>• Add ginger-garlic paste and green chilies; sauté for 1–2 minutes.</li>
@@ -156,7 +156,7 @@ export default function FishCurryRecipe() {
 
             <div>
               <h3 className="text-xl font-semibold mb-2">3. Add spices</h3>
-              <ul className="ml-6 space-y-1">
+              <ul className="ml-6 space-y-1 text-xl">
                 <li>• Mix in turmeric, chili, coriander, cumin powders, and salt.</li>
                 <li>• Stir for 1–2 minutes until fragrant.</li>
               </ul>
@@ -164,14 +164,14 @@ export default function FishCurryRecipe() {
 
             <div>
               <h3 className="text-xl font-semibold mb-2">4. Add liquid</h3>
-              <ul className="ml-6 space-y-1">
+              <ul className="ml-6 space-y-1 text-xl">
                 <li>• Pour in coconut milk or water and bring to a gentle simmer.</li>
               </ul>
             </div>
 
             <div>
               <h3 className="text-xl font-semibold mb-2">5. Cook the fish</h3>
-              <ul className="ml-6 space-y-1">
+              <ul className="ml-6 space-y-1 text-xl">
                 <li>• Gently add fish pieces into the curry.</li>
                 <li>• Cover and simmer for 7–10 minutes, depending on the thickness of the fish.</li>
                 <li>• Avoid stirring too much to prevent breaking the fish.</li>
@@ -180,7 +180,7 @@ export default function FishCurryRecipe() {
 
             <div>
               <h3 className="text-xl font-semibold mb-2">6. Finish and garnish</h3>
-              <ul className="ml-6 space-y-1">
+              <ul className="ml-6 space-y-1 text-xl">
                 <li>• Sprinkle garam masala and squeeze lemon juice.</li>
                 <li>• Garnish with fresh coriander leaves.</li>
               </ul>
@@ -188,7 +188,7 @@ export default function FishCurryRecipe() {
 
             <div>
               <h3 className="text-xl font-semibold mb-2">7. Serve</h3>
-              <ul className="ml-6 space-y-1">
+              <ul className="ml-6 space-y-1 text-xl">
                 <li>• Best with steamed rice, roti, or appam.</li>
               </ul>
             </div>
@@ -196,9 +196,9 @@ export default function FishCurryRecipe() {
         </section>
 
         {/* Tips */}
-        <section className="bg-yellow-50 p-6 rounded-lg">
+        <section className=" p-6 rounded-lg">
           <h2 className="text-2xl font-bold mb-4">💡 Tips</h2>
-          <ul className="space-y-2">
+          <ul className="space-y-2 text-xl">
             <li>• Firm white fish works best; avoid delicate fish that may break apart.</li>
             <li>• Adjust spiciness by changing the number of green chilies or chili powder.</li>
             <li>• Coconut milk makes the curry creamy; water makes it lighter.</li>
