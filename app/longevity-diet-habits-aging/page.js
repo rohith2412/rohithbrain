@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 export const metadata = {
   title: 'Science-Backed Longevity Diet: 10 Daily Habits That Slow Aging and Boost Energy | Rohith Brain',
   description: 'Discover 10 science-backed daily habits from the longevity diet that slow aging, boost energy, and promote healthy living based on blue zones research.',

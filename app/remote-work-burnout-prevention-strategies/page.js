@@ -1,3 +1,5 @@
+/* eslint-disable react/no-unescaped-entities */
+
 export const metadata = {
   title: 'Remote Work Burnout: 7 Science-Backed Strategies to Reclaim Your Energy in 2025 | Rohith Brain',
   description: 'Combat remote work burnout with proven strategies. Discover science-backed methods to restore energy, improve work-life balance, and thrive while working from home.',

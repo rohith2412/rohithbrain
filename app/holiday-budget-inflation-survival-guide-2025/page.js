@@ -1,3 +1,5 @@
+/* eslint-disable react/no-unescaped-entities */
+
 export const metadata = {
   title: 'Holiday Budget Survival Guide: How to Save Money During Peak Inflation in 2025 | Rohith Brain',
   description: 'Master holiday spending with our comprehensive budget survival guide. Learn proven strategies to save money during 2025\'s inflation while still enjoying the festive season.',
