@@ -44,7 +44,66 @@ export default function sitemap() {
       changeFrequency: 'monthly',
       priority: 0.8
     },
-    
-
+    // Advanced Beginner Tips - Investing Articles
+    {
+      url: `${baseUrl}/Investingforbeginners/Advanced_Beginner_Tips/How_to_read_annual_reports`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/Investingforbeginners/Advanced_Beginner_Tips/How_to_calculate_ROI_on_your_investments`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/Investingforbeginners/Advanced_Beginner_Tips/How_to_track_investment_performance`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/Investingforbeginners/Advanced_Beginner_Tips/How_to_use_fundamental_analysis`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/Investingforbeginners/Advanced_Beginner_Tips/How_to_use_technical_analysis`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/Investingforbeginners/Advanced_Beginner_Tips/How_to_invest_like_a_pro_for_beginners`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/Investingforbeginners/Advanced_Beginner_Tips/Mistakes_to_avoid_when_investing_in_mutual_funds`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/Investingforbeginners/Advanced_Beginner_Tips/How_to_research_ETFs_effectively`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/Investingforbeginners/Advanced_Beginner_Tips/How_to_plan_for_your_first_million_through_investing`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/Investingforbeginners/Advanced_Beginner_Tips/Top_tips_from_successful_beginner_investors`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    }
   ]
 }
