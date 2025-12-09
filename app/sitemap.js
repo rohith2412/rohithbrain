@@ -104,6 +104,54 @@ export default function sitemap() {
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8
+    },
+    {
+      url: `${baseUrl}/Investingforbeginners/Basics_of_Investing/Common_investing_mistakes_beginners_make`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/Investingforbeginners/Basics_of_Investing/How_inflation_affects_your_investments`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/Investingforbeginners/Basics_of_Investing/How_to_create_a_beginner’s_investment_plan`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/Investingforbeginners/Basics_of_Investing/The_difference_between_saving_and_investing`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/Investingforbeginners/Basics_of_Investing/Understanding_risk_and_reward_in_investing`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/Investingforbeginners/Basics_of_Investing/What_is_compounding_and_why_it_matters`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/Investingforbeginners/Basics_of_Investing/What_is_investing?_A _beginner’s_guide`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/Investingforbeginners/Basics_of_Investing/Why_you_should_start_investing_early`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8
     }
   ]
 }
